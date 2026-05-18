@@ -1,75 +1,73 @@
 # REAPER Reset Item Playrate
 
-Lua ReaScript для REAPER, который сбрасывает ускорение/замедление выделенных item до `1.0` и сохраняет структуру монтажа.
+Lua ReaScript for REAPER that resets selected media item take playrate to `1.0` while preserving the edit structure.
 
-Скрипт полезен, когда уже смонтирована дикторская начитка: фразы нарезаны на много item, между ними выставлены паузы, переносы, нахлесты или кроссфейды, а у разных item применен разный playback rate. После запуска все обработанные take получают playrate `1.0`, item становятся длиннее или короче, а выбранная последовательность расширяется так, чтобы монтажные паузы и порядок сохранились.
+This is useful for edited voiceover sessions where narration has already been cut into many items, pauses and overlaps have been shaped by hand, and different items may have different playback rates. After running the script, every processed active take is reset to normal speed, the items become longer or shorter as needed, and the selected sequence expands while keeping the original gaps, overlaps, and order.
 
-## Что делает скрипт
+## What It Does
 
-- Обрабатывает только выделенные media items.
-- Работает отдельно по каждой дорожке.
-- Для каждого item с активным take:
-  - читает текущую позицию, длину и playrate;
-  - считает новую длину как `текущая длина * текущий playrate`;
-  - ставит take playrate в `1.0`;
-  - сдвигает следующие выделенные item на этой же дорожке на накопленную разницу длины.
-- Сохраняет паузы, нахлесты, порядок item, take start offset и остальные настройки take/item.
-- Пропускает item без активного take или с некорректным playrate.
-- Выполняет всю операцию одним undo-шагом.
+- Processes only selected media items.
+- Handles each track independently.
+- For every selected item with an active take:
+  - reads the original item position, length, and take playrate;
+  - calculates the new length as `current length * current playrate`;
+  - sets the active take playrate to `1.0`;
+  - shifts later selected items on the same track by the accumulated length difference.
+- Preserves gaps, overlaps, item order, take start offset, pitch preservation settings, and other take/item settings.
+- Skips items without an active take or with an invalid playrate.
+- Wraps the whole operation in a single REAPER undo step.
 
-## Пример
+## Example
 
-До запуска:
+Before:
 
 ```text
 Item A: playrate 1.50, length 2.0 sec
-Pause: 0.4 sec
+Gap: 0.4 sec
 Item B: playrate 1.25, length 3.0 sec
 ```
 
-После запуска:
+After:
 
 ```text
 Item A: playrate 1.00, length 3.0 sec
-Pause: 0.4 sec
+Gap: 0.4 sec
 Item B: playrate 1.00, length 3.75 sec
 ```
 
-Пауза между item остается такой же, но вся последовательность становится длиннее.
+The gap between items stays the same, but the whole selected sequence becomes longer.
 
-## Установка
+## Installation
 
-1. Скачайте файл [`Scripts/reset_selected_item_playrate_preserve_gaps.lua`](Scripts/reset_selected_item_playrate_preserve_gaps.lua).
-2. Откройте REAPER.
-3. Перейдите в `Actions` -> `Show action list...`.
-4. Нажмите `New Action...` -> `Load ReaScript...`.
-5. Выберите скачанный `.lua` файл.
-6. При желании назначьте горячую клавишу через `Add...` в окне Action List.
+1. Download [`Scripts/reset_selected_item_playrate_preserve_gaps.lua`](Scripts/reset_selected_item_playrate_preserve_gaps.lua).
+2. Open REAPER.
+3. Go to `Actions` -> `Show action list...`.
+4. Click `New Action...` -> `Load ReaScript...`.
+5. Select the downloaded `.lua` file.
+6. Optionally assign a shortcut from the Action List.
 
-## Использование
+## Usage
 
-1. Выделите нужные item на одной или нескольких дорожках.
-2. Запустите action `Reset selected item playrate to 1.0 while preserving gaps`.
-3. Проверьте результат.
-4. Если нужно отменить операцию, используйте обычный `Undo` в REAPER.
+1. Select the items you want to process on one or more tracks.
+2. Run the action `Reset selected item playrate to 1.0 while preserving gaps`.
+3. Check the result.
+4. Use REAPER's normal `Undo` command if you need to revert the operation.
 
-## Важные ограничения
+## Important Notes
 
-- Скрипт двигает только выделенные item. Невыделенные item дальше по таймлайну не сдвигаются.
-- Если рядом с выделенной последовательностью есть невыделенные элементы, после расширения выделенной начитки они могут пересечься с обработанными item.
-- Скрипт рассчитан на media items с активным take. Empty items и другие item без active take будут пропущены.
-- Обработка на нескольких дорожках независимая: каждая дорожка расширяется по своей выбранной последовательности.
+- The script moves only selected items. Unselected items later on the timeline are not moved.
+- If unselected items sit after or near the selected sequence, the expanded narration may overlap them.
+- The script is designed for media items with an active take. Empty items and other items without an active take are skipped.
+- Multi-track processing is independent: each track expands according to its own selected item sequence.
 
-## Проверка
+## Suggested Checks
 
-Рекомендуемые сценарии проверки в REAPER:
+- Single track: select items with playrates such as `1.25`, `1.5`, and `1.0`, then verify that all processed takes become `1.0` and the gaps are preserved.
+- Multiple tracks: select items on two tracks and verify that each track expands independently.
+- Overlap or crossfade: verify that a negative gap between adjacent selected items is preserved.
+- Item without an active take: verify that the script does not fail and reports skipped items.
+- Undo: run the script and undo it with one REAPER undo action.
 
-- Одна дорожка: выделить item с playrate `1.25`, `1.5`, `1.0` и проверить, что все стали `1.0`, а паузы сохранились.
-- Несколько дорожек: выделить item на двух дорожках и проверить, что каждая дорожка расширилась независимо.
-- Нахлест или кроссфейд: проверить, что отрицательная пауза между соседними item сохранилась.
-- Item без active take: убедиться, что скрипт не падает и показывает предупреждение о пропущенных item.
-- Undo: запустить скрипт и отменить одним действием.
+## License
 
-## Лицензия
-
-MIT. Можно свободно использовать, изменять и распространять.
+MIT. You can use, modify, and distribute this script freely.
