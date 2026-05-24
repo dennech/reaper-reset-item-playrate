@@ -1,8 +1,15 @@
-# REAPER Reset Item Playrate
+# REAPER Voiceover Montage ReaScripts
 
-Lua ReaScript for REAPER that resets selected media item take playrate to `1.0` while preserving a global edited voiceover timeline.
+Lua ReaScripts for REAPER that help reshape edited voiceover montage across one or more tracks.
 
-This is useful for edited narration sessions where one read is spread across several tracks. The script treats all selected items as one montage timeline, similar in spirit to ripple editing across selected material: non-muted selected items define the timing, and later selected items on any track move when an earlier non-muted item becomes longer or shorter.
+These scripts are useful for edited narration sessions where one read is spread across several tracks. They treat selected items as one montage timeline, similar in spirit to ripple editing across selected material.
+
+## Available Scripts
+
+- [`reset_selected_item_playrate_preserve_gaps.lua`](Scripts/reset_selected_item_playrate_preserve_gaps.lua): resets selected item take playrate to `1.0` while preserving global edit timing.
+- [`increase_selected_item_gaps_unified.lua`](Scripts/increase_selected_item_gaps_unified.lua): increases pauses between selected non-muted items to make speech feel more measured.
+
+## Reset Playrate Script
 
 ## What It Does
 
@@ -41,7 +48,7 @@ Item A became 1.0 sec longer, so later selected items on all tracks moved 1.0 se
 
 ## Installation
 
-1. Download [`Scripts/reset_selected_item_playrate_preserve_gaps.lua`](Scripts/reset_selected_item_playrate_preserve_gaps.lua).
+1. Download the script you want from the [`Scripts`](Scripts) folder.
 2. Open REAPER.
 3. Go to `Actions` -> `Show action list...`.
 4. Click `New Action...` -> `Load ReaScript...`.
@@ -72,6 +79,45 @@ Item A became 1.0 sec longer, so later selected items on all tracks moved 1.0 se
 - Muted-only selection: verify that selected muted items reset/stretch in place with no ripple shift.
 - Crossfade or overlap: verify that an overlap between sequential non-muted items keeps the same timeline relationship, with fade lengths scaled.
 - Same-start non-muted items: verify that same-start items stay aligned and only affect later-start items.
+- Undo: run the script and undo it with one REAPER undo action.
+
+## Increase Gaps Script
+
+[`increase_selected_item_gaps_unified.lua`](Scripts/increase_selected_item_gaps_unified.lua) makes edited speech more measured by increasing positive pauses between selected non-muted items across all selected tracks.
+
+When launched, it opens a small REAPER parameter window:
+
+- `Gap increase %`: proportional pause increase, default `20`.
+- `Add seconds`: fixed time added to every detected pause, default `0`.
+
+Both values are applied together:
+
+```text
+extra gap = original gap * percent / 100 + add seconds
+```
+
+Examples:
+
+- `20%` and `0 sec`: a 1.0 sec pause becomes 1.2 sec.
+- `0%` and `0.15 sec`: a 1.0 sec pause becomes 1.15 sec.
+- `20%` and `0.1 sec`: a 1.0 sec pause becomes 1.3 sec.
+
+### Gap Expander Behavior
+
+- Only positive gaps between selected non-muted montage regions are expanded.
+- Overlaps, crossfades, and parallel selected non-muted items do not receive added space between them.
+- Muted selected items are followers: they move according to the expanded timeline, but they do not define or increase gaps.
+- Items inside an expanded gap move proportionally inside that gap.
+- Item lengths, playrates, fades, take start offsets, and take settings are not changed.
+- Only selected items are moved; unselected items are untouched.
+
+Suggested checks:
+
+- Single track: two selected non-muted items with a 1.0 sec gap and `20%, 0 sec` should become a 1.2 sec gap.
+- Multi-track: selected non-muted items on different tracks should define one global montage timeline.
+- Muted follower: a selected muted item inside a gap should move proportionally as that gap expands.
+- Muted-only selection: the script should report that no non-muted selected montage items were found.
+- Crossfade or overlap: overlapping selected non-muted items should keep their existing relationship.
 - Undo: run the script and undo it with one REAPER undo action.
 
 ## License
