@@ -8,6 +8,7 @@ These scripts are useful for edited narration sessions where one read is spread 
 
 - [`reset_selected_item_playrate_preserve_gaps.lua`](Scripts/reset_selected_item_playrate_preserve_gaps.lua): resets selected item take playrate to `1.0` while preserving global edit timing.
 - [`increase_selected_item_gaps_unified.lua`](Scripts/increase_selected_item_gaps_unified.lua): increases pauses between selected non-muted items to make speech feel more measured.
+- [`create_region_from_selected_items.lua`](Scripts/create_region_from_selected_items.lua): creates one unnamed region spanning all selected items.
 
 ## Reset Playrate Script
 
@@ -118,6 +119,28 @@ Suggested checks:
 - Muted follower: a selected muted item inside a gap should move proportionally as that gap expands.
 - Muted-only selection: the script should report that no non-muted selected montage items were found.
 - Crossfade or overlap: overlapping selected non-muted items should keep their existing relationship.
+- Undo: run the script and undo it with one REAPER undo action.
+
+## Create Region Script
+
+[`create_region_from_selected_items.lua`](Scripts/create_region_from_selected_items.lua) creates one unnamed REAPER region from the global bounds of the current selected items.
+
+It uses the earliest selected item start as the region start and the latest selected item end as the region end. Selected items on all tracks are included, and muted selected items affect the bounds the same way as non-muted items.
+
+Behavior:
+
+- Creates one new region immediately, with no dialog.
+- Uses an empty region name.
+- Does not move or edit any items.
+- Does not modify existing regions.
+- Shows a message if no media items are selected.
+
+Suggested checks:
+
+- Single track: select two separated items and verify the region spans from the first start to the last end.
+- Multi-track: select items across tracks and verify the earliest start/latest end are used globally.
+- Muted items: verify muted selected items still affect the region bounds.
+- Empty selection: verify no region is created.
 - Undo: run the script and undo it with one REAPER undo action.
 
 ## License
